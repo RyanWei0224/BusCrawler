@@ -1,18 +1,20 @@
 
-SHA_TOKEN = ''
+SH_TOKEN = ''
+KS_TOKEN = ''
+TC_TOKEN = ''
 
-SHA_HEADERS = {
+SH_HEADERS = {
 	'Host': 'smartgate.ywtbsupappw.sh.gov.cn',
-#	'Authentication': SHA_TOKEN,
+#	'Authentication': SH_TOKEN,
 	# ...
 }
 
-SHA_DATA = {
-	"userSystemData": {
-		"brand":"microsoft",
+SH_DATA = {
+	'userSystemData': {
+		'brand':'microsoft',
 		# ...
 	},
-	"sessionId": SHA_TOKEN
+	'sessionId': SH_TOKEN,
 }
 
 ZSCX_HEADERS = {
@@ -24,10 +26,6 @@ ZSCX_HEADERS = {
 WX_TOK_JSON = {
 	'accessId': '',
 	'accessSecret': '',
-}
-
-KS_HEADERS = {
-	'token': '',
 }
 
 SZ_TOKEN = ''
