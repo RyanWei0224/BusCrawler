@@ -70,7 +70,7 @@ class Chelaile(CrawlerBase):
 
 	def _get_once(self, get_line = False, **kwargs):
 		url = self.line_url if get_line else self.bus_url
-		res, get_t = self._get_req(url)
+		res, get_t = self._get_req(url, **kwargs)
 		rtext = res.text
 		assert rtext.startswith('**YGKJ') and rtext.endswith('YGKJ##'), f'[Chelaile] Wrong format: {rtext}'
 		rtext = rtext[6:-6]

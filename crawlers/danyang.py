@@ -41,7 +41,7 @@ class Danyang(CrawlerBase):
 
 
 	def _get_once(self, get_line = False, **kwargs):
-		res_json, get_t = super()._get_once(get_line = get_line)
+		res_json, get_t = super()._get_once(get_line = get_line, **kwargs)
 
 		if res_json.get('code', None) != 200 and res_json.get('msg', None) != '成功':
 			assert False, f'Failed! code: {res_json.get("code", None)}, msg: {res_json.get("msg", None)}'

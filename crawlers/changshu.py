@@ -45,14 +45,14 @@ class Changshu(CrawlerBase):
 
 	def _get_once(self, get_line = False, **kwargs):
 		if get_line:
-			res_json, get_t = super()._get_json(self.line_url, is_post = True, json = self.line_data)
+			res_json, get_t = super()._get_json(self.line_url, is_post = True, json = self.line_data, **kwargs)
 			if res_json['msg'] != '数据取得成功！' or res_json['succ'] is not True:
 				assert False, f'Failed! msg: {res_json["msg"]}, succ: {res_json["succ"]}'
 			res_json = res_json['dataObj']
 			for d in res_json['list']:
 				del d['lbguid']
 		else:
-			res_json, get_t = super()._get_json(self.bus_url)
+			res_json, get_t = super()._get_json(self.bus_url, **kwargs)
 			if res_json['type'] != 'response' or res_json['status'] != '200':
 				assert False, f'Failed! type: {res_json["type"]}, status: {res_json["status"]}'
 			res_json = res_json['content']

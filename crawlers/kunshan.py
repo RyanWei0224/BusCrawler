@@ -37,7 +37,7 @@ class Kunshan(CrawlerBase):
 
 	def _get_once(self, get_line = False, **kwargs):
 		try:
-			res_json, get_t = super()._get_once(get_line = get_line, headers = KS_HEADERS)
+			res_json, get_t = super()._get_once(get_line = get_line, headers = KS_HEADERS, **kwargs)
 		except Exception as e:
 			import re
 			str_e = str(e)

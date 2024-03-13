@@ -51,7 +51,7 @@ class Zhangjiagang(CrawlerBase):
 
 
 	def _get_once(self, get_line = False, **kwargs):
-		res_json, get_t = super()._get_once(get_line = get_line)
+		res_json, get_t = super()._get_once(get_line = get_line, **kwargs)
 
 
 		if res_json['code'] != 0 or res_json['ok'] is not True:

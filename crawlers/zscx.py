@@ -50,7 +50,7 @@ class ZSCX(CrawlerBase):
 			url, data = self.line_url, self.line_data
 		else:
 			url, data = self.bus_url, self.bus_data
-		res, get_t = self._get_req(url, data = data, headers = ZSCX_HEADERS)
+		res, get_t = self._get_req(url, data = data, headers = ZSCX_HEADERS, **kwargs)
 		try:
 			res_json = res.json()
 		except Exception as e:

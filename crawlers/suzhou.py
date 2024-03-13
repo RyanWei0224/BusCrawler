@@ -56,7 +56,7 @@ class Suzhou(CrawlerBase):
 
 	def _get_once(self, get_line = False, **kwargs):
 		def get_func(url):
-			res_json, get_t = self._get_json(url)
+			res_json, get_t = self._get_json(url, **kwargs)
 			if res_json['code'] == '100501' and res_json['msg'] == '请求失败':
 				return None, None
 			if res_json['code'] != '0' and res_json['msg'] != '':

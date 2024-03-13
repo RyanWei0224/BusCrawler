@@ -73,9 +73,9 @@ class Shanghai(CrawlerBase):
 					send_mail('Shanghai Error!')
 				assert False, f'Error in Shanghai! {res_json}'
 
-		res_json, get_t = self._get_json(self.bus_url, is_post = True, json = self.bus_data, headers = SH_HEADERS)
+		res_json, get_t = self._get_json(self.bus_url, is_post = True, json = self.bus_data, headers = SH_HEADERS, **kwargs)
 		check_code(res_json)
-		line_json, _ = self._get_json(self.line_url, is_post = True, json = self.line_data, headers = SH_HEADERS)
+		line_json, _ = self._get_json(self.line_url, is_post = True, json = self.line_data, headers = SH_HEADERS, **kwargs)
 		check_code(line_json)
 
 		line_json = line_json['data'][f'lineResults{self.direction}']

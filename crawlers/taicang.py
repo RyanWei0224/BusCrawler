@@ -37,7 +37,7 @@ class Taicang(CrawlerBase):
 
 
 	def _get_once(self, get_line = False, **kwargs):
-		res_json, get_t = super()._get_once(get_line = get_line, headers = TC_HEADERS)
+		res_json, get_t = super()._get_once(get_line = get_line, headers = TC_HEADERS, **kwargs)
 
 		if res_json.get('result', None) != '0' or res_json.get('message', None) != 'success':
 			self._stop = True

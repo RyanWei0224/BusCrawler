@@ -42,7 +42,7 @@ class Changzhou(CrawlerBase):
 
 
 	def _get_once(self, get_line = False, **kwargs):
-		res_json, get_t = super()._get_once(get_line = get_line)
+		res_json, get_t = super()._get_once(get_line = get_line, **kwargs)
 
 		if res_json['resCode'] != 10000 and res_json['resMsg'] != '成功':
 			assert False, f'Failed! resCode: {res_json["resCode"]}, resMsg: {res_json["resMsg"]}'

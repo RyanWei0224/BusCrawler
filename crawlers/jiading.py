@@ -59,15 +59,15 @@ class Jiading(CrawlerBase):
 
 
 	def _get_once(self, get_line = False, **kwargs):
-		res_html, get_t = self._get_html(self.bus_url, is_post = True)
+		res_html, get_t = self._get_html(self.bus_url, is_post = True, **kwargs)
 		res_html = res_html[0]
 		def proc_xml(elem):
 			return {i.tag: i.text for i in elem}
 		res_json = {'data': [proc_xml(elem) for elem in res_html]}
 
-		line_json, _ = self._get_json(self.line_url, is_post = True)
+		line_json, _ = self._get_json(self.line_url, is_post = True, **kwargs)
 		line_json = line_json['zdly'][self.upDown]
-		sch_json, _ = self._get_json(self.sch_url, is_post = True)
+		sch_json, _ = self._get_json(self.sch_url, is_post = True, **kwargs)
 
 		res_json['_line'] = {
 			'line': line_json,

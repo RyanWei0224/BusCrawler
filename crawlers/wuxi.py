@@ -44,7 +44,7 @@ class Wuxi(CrawlerBase):
 			try:
 				import time
 				time.sleep(1)
-				res_json, _ = self._get_json(WX_TOK_URL, is_post = True, json = WX_TOK_JSON)
+				res_json, _ = self._get_json(WX_TOK_URL, is_post = True, json = WX_TOK_JSON, **kwargs)
 				new_token = res_json['items']['token']
 				self.WX_HEADERS['token'] = new_token
 				time.sleep(1)
@@ -59,7 +59,7 @@ class Wuxi(CrawlerBase):
 			return True
 
 		for _ in range(3):
-			res_json, get_t = super()._get_once(get_line = get_line, headers = self.WX_HEADERS)
+			res_json, get_t = super()._get_once(get_line = get_line, headers = self.WX_HEADERS, **kwargs)
 			if res_json['result'] != '2' or res_json['message'] != 'token无效或者已过期':
 				break
 			upd_wuxi_token(res_json)
