@@ -37,7 +37,7 @@ def init():
 		os.makedirs(d, exist_ok=True)
 
 
-def merge_dict(d1, d2):
+def merge_dict(d1, d2, max_depth = -1):
 	d = dict()
 	ks = set(d1.keys()) | set(d2.keys())
 	for k in ks:
@@ -51,9 +51,12 @@ def merge_dict(d1, d2):
 			d[k] = d1[k]
 			continue
 
+		if max_depth == 0:
+			assert False, 'Detected merge at max depth!'
+
 		if isinstance(d1[k], dict):
 			assert isinstance(d2[k], dict), f'Type mismatch: {type(d1[k])} v.s. {type(d2[k])}'
-			d[k] = merge_dict(d1[k], d2[k])
+			d[k] = merge_dict(d1[k], d2[k], max_depth = max_depth - 1)
 			continue
 
 		if isinstance(d1[k], list):

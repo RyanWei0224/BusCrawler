@@ -172,7 +172,8 @@ class CrawlerBase:
 		if dict_empty(self.bus_dict):
 			return False
 
-		if os.path.isfile(self.file_name):
+		has_file = os.path.isfile(self.file_name)
+		if has_file:
 			with open(self.file_name, 'rb') as f:
 				d = pickle.load(f)
 			self.bus_dict = merge_dict(d, self.bus_dict)
@@ -182,7 +183,9 @@ class CrawlerBase:
 
 		with open(self.file_name, 'wb') as f:
 			pickle.dump(self.bus_dict, f)
-		# os.remove(self.bak_name)
+
+		# if has_file:
+		# 	os.remove(self.bak_name)
 		self.bus_dict.clear()
 		return True
 
