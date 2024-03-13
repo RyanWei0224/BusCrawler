@@ -115,13 +115,30 @@ class CrawlerBase:
 
 		daytime = (get_t.tm_hour * 60 + get_t.tm_min) * 60 + get_t.tm_sec
 
+		# for bus_id, station_id, in_station, lon, lat, t in bus_datas:
 		for bus_id, station_id, in_station, lon, lat in bus_datas:
 			assert station_id >= 0 and in_station in (0, 1), f'Illegal state ({station_id}, {in_station})'
 
 			if bus_id not in cur_dict:
 				cur_dict[bus_id] = list()
 
-			cur_dict[bus_id].append((daytime, station_id, in_station, lon, lat))
+			cur_dt = daytime
+			'''
+			if t is not None:
+				cur_t = time.mktime(get_t)
+				try:
+					if t < cur_t:
+						t = time.localtime(t)
+						t_day = time.strftime('%y/%m/%d', t)
+						if day != t_day:
+							print(f'[Warning] {day} != {t_day} at {self.name()}!')
+						else:
+							cur_dt = (t.tm_hour * 60 + t.tm_min) * 60 + t.tm_sec
+				except Exception as e:
+					print(f'[Warning] Exception "{e}" when decoding t at {self.name()}!')
+			'''
+
+			cur_dict[bus_id].append((cur_dt, station_id, in_station, lon, lat))
 
 		if TPOINT_STR not in cur_dict:
 			cur_dict[TPOINT_STR] = list()

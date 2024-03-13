@@ -12,7 +12,15 @@ class Changzhou(CrawlerBase):
 
 
 	def get_stations(self, line_json):
-		stations = [s['Station_Name'] for s in line_json]
+		def _proc(s):
+			if 'LatLng' not in s:
+				lon = None
+				lat = None
+			else:
+				lon = s['LatLng'].get('longitude', None)
+				lat = s['LatLng'].get('latitude', None)
+			return (s['Station_Name'], lon, lat)
+		stations = [_proc(s) for s in line_json]
 		return stations
 
 
@@ -26,6 +34,7 @@ class Changzhou(CrawlerBase):
 			else:
 				lon = bus_data['LatLng'].get('longitude', None)
 				lat = bus_data['LatLng'].get('latitude', None)
+			# "RecTime": "2024-03-11 14:35:34"
 			return (bus_data['BusId'], bus_data['Current_Station_Sort'] - 1, bus_data['IsArrive'], lon, lat)
 
 		bus_datas = [_proc(i) for i in res_json]

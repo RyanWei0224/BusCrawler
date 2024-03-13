@@ -12,7 +12,11 @@ class Danyang(CrawlerBase):
 
 
 	def get_stations(self, line_json):
-		stations = [s['stationName'] for s in line_json['stationDetailList']]
+		def _proc(s):
+			lon = s.get('inLon', None)
+			lat = s.get('inLat', None)
+			return (s['stationName'], lon, lat)
+		stations = [_proc(s) for s in line_json['stationDetailList']]
 		return stations
 
 
@@ -29,7 +33,7 @@ class Danyang(CrawlerBase):
 			station_id = bus_data['stationId']
 			lon = bus_data.get('lon', None)
 			lat = bus_data.get('lat', None)
-			res = (bus_data['busId'], station_data.index(station_id), 2-int(bus_data['busStatus']), lon, lat)
+			res = (bus_data['busId'], station_data.index(station_id), 2-int(bus_data['busStatus']), lon, lat) #, None
 			bus_datas.append(res)
 		del res_json['busList']
 

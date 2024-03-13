@@ -16,7 +16,11 @@ class ZSCX(CrawlerBase):
 
 
 	def get_stations(self, line_json):
-		stations = [s['stationName'] for s in line_json['data']]
+		def _proc(s):
+			lon = s.get('station_lon', None)
+			lat = s.get('station_lat', None)
+			return (s['stationName'], lon, lat)
+		stations = [_proc(s) for s in line_json['data']]
 		return stations
 
 
@@ -29,7 +33,13 @@ class ZSCX(CrawlerBase):
 			station_id -= (1 - in_station)
 			lon = bus_data.get('bus_lng', None)
 			lat = bus_data.get('bus_lat', None)
-			return (bus_data['busNumber'], station_id, in_station, lon, lat)
+			'''
+			try:
+				t = int(bus_data['_recTime']) / 1000
+			except Exception:
+				t = None
+			'''
+			return (bus_data['busNumber'], station_id, in_station, lon, lat) #, t
 
 		bus_datas = [_proc(i) for i in res_json['list']]
 		return bus_datas, None

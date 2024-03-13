@@ -30,7 +30,7 @@ class Shanghai(CrawlerBase):
 
 
 	def get_stations(self, line_json):
-		stations = [s['zdmc'] for s in line_json]
+		stations = [(s['zdmc'], None, None) for s in line_json]
 		return stations
 
 

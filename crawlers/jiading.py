@@ -14,7 +14,17 @@ class Jiading(CrawlerBase):
 
 
 	def get_stations(self, line_json):
-		stations = [s['ZDMC'] for s in line_json['line']]
+		def _proc(s):
+			try:
+				lon = float(s['SOURCE_LON'])
+			except Exception:
+				lon = None
+			try:
+				lat = float(s['SOURCE_LAT'])
+			except Exception:
+				lat = None
+			return (s['ZDMC'], lon, lat)
+		stations = [_proc(s) for s in line_json['line']]
 		return stations
 
 

@@ -13,7 +13,7 @@ class Suzhou(CrawlerBase):
 
 
 	def get_stations(self, line_json):
-		stations = [s['standName'] for s in line_json['standInfo']]
+		stations = [(s['standName'], None, None) for s in line_json['standInfo']]
 		return stations
 
 

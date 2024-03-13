@@ -17,7 +17,7 @@ class Taicang(CrawlerBase):
 
 
 	def get_stations(self, line_json):
-		stations = [s['stationName'] for s in line_json]
+		stations = [(s['stationName'], None, None) for s in line_json]
 		return stations
 
 

@@ -19,7 +19,11 @@ class Wuxi(CrawlerBase):
 
 
 	def get_stations(self, line_json):
-		stations = [s['stationName'] for s in line_json['stations']]
+		def _proc(s):
+			lon = s.get('longitude', None)
+			lat = s.get('latitude', None)
+			return (s['stationName'], lon, lat)
+		stations = [_proc(s) for s in line_json['stations']]
 		return stations
 
 

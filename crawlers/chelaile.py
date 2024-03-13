@@ -7,18 +7,22 @@ class Chelaile(CrawlerBase):
 	GET_LINE = False
 	def __init__(self, bus_name, line_info):
 		super().__init__(bus_name, line_info)
-		# cityId, lineId, lng, lat = line_info
+		# cityId, lineId, lon, lat = line_info
 		cityId, lineId = line_info
-		lng = 118.8
+		lon = 118.8
 		lat = 32
 		self.bus_url  = f'https://api.chelaile.net.cn/bus/line!lineDetail.action?sign={CLL_SIGN}' \
 			f'&cityId={cityId}&geo_type=gcj&lineId={lineId}&isNewLineDetail=1&s=android' \
-			f'&last_src=app_xiaomi_store&geo_lng={lng}&geo_lat={lat}&v=3.80.0'
+			f'&last_src=app_xiaomi_store&geo_lng={lon}&geo_lat={lat}&v=3.80.0'
 		self.line_url = None
 
 
 	def get_stations(self, line_json):
-		stations = [s['sn'] for s in line_json['stations']]
+		def _proc(s):
+			lon = s.get('lng', None)
+			lat = s.get('lat', None)
+			return (s['sn'], lon, lat)
+		stations = [_proc(s) for s in line_json['stations']]
 		return stations
 
 
@@ -29,7 +33,7 @@ class Chelaile(CrawlerBase):
 			in_station = int(bus_data['state'])
 			lon = bus_data.get('lon', None)
 			lat = bus_data.get('lat', None)
-			return (bus_data['busId'], int(bus_data['order']) - (1 - in_station) - 1, in_station, lon, lat)
+			return (bus_data['busId'], int(bus_data['order']) - (1 - in_station) - 1, in_station, lon, lat) #, None
 
 		data = res_json
 		bus_datas = data['buses']

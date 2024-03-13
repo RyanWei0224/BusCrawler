@@ -22,7 +22,11 @@ class Changshu(CrawlerBase):
 
 
 	def get_stations(self, line_json):
-		stations = [s['sname'] for s in line_json['list']]
+		def _proc(s):
+			lon = s.get('slon', None)
+			lat = s.get('slat', None)
+			return (s['sname'], lon, lat)
+		stations = [_proc(s) for s in line_json['list']]
 		return stations
 
 
