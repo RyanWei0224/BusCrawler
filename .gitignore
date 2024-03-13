@@ -133,5 +133,6 @@ dmypy.json
 *.json
 *.pickle
 *.csv
+*.xlsx
 
 my_config.py
