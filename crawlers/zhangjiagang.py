@@ -11,7 +11,8 @@ class Zhangjiagang(CrawlerBase):
 		self.line_url = None
 
 
-	def get_stations(self, line_json):
+	@classmethod
+	def get_stations(cls, line_json):
 		def _proc(s):
 			lon = s.get('lng', None)
 			lat = s.get('lat', None)

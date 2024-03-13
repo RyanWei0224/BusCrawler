@@ -5,8 +5,9 @@ import requests
 import time
 from lxml import etree
 
-from .util import TPOINT_STR, PICKLE_DIR, PICBAK_DIR
+from .util import TPOINT_STR, PICKLE_DIR, PICBAK_DIR, DATE_FORMAT
 from .util import merge_dict, dict_empty, ljson_name, ljson_lastf
+from .util import load_json, save_json, load_pkl, save_pkl
 
 
 class CrawlerBase:
@@ -28,7 +29,8 @@ class CrawlerBase:
 		self.flush_time = time.time() + self.TIMEOUT
 
 
-	def get_stations(self, line_json):
+	@classmethod
+	def get_stations(cls, line_json):
 		raise NotImplementedError
 		# return ['station1', 'station2', ...]
 
@@ -91,13 +93,12 @@ class CrawlerBase:
 		if line_file is None:
 			return None
 
-		with open(line_file, 'r', encoding = 'utf-8') as f:
-			data = json.load(f)
+		data = load_json(line_file)
 		return data
 
 
 	def update(self, bus_datas, get_t):
-		day = time.strftime('%y/%m/%d', get_t)
+		day = time.strftime(DATE_FORMAT, get_t)
 		if day not in self.bus_dict:
 			self.bus_dict[day] = dict()
 		cur_dict = self.bus_dict[day]
@@ -118,7 +119,7 @@ class CrawlerBase:
 				try:
 					if t < cur_t:
 						t = time.localtime(t)
-						t_day = time.strftime('%y/%m/%d', t)
+						t_day = time.strftime(DATE_FORMAT, t)
 						if day != t_day:
 							print(f'[Warning] {day} != {t_day} at {self.name()}!')
 						else:
@@ -144,9 +145,7 @@ class CrawlerBase:
 
 		line_file = ljson_name(self.bus_name, get_t)
 		assert not os.path.isfile(line_file), f'File {line_file} already exists!'
-
-		with open(line_file, 'w', encoding = 'utf-8') as f:
-			json.dump(line_json, f, ensure_ascii = False, indent = '\t')
+		save_json(line_json, line_file)
 
 		print('New route info:', line_file)
 
@@ -163,15 +162,13 @@ class CrawlerBase:
 
 		has_file = os.path.isfile(self.file_name)
 		if has_file:
-			with open(self.file_name, 'rb') as f:
-				d = pickle.load(f)
+			d = load_pkl(self.file_name)
 			self.bus_dict = merge_dict(d, self.bus_dict)
 
 			import shutil
 			shutil.copy2(self.file_name, self.bak_name)
 
-		with open(self.file_name, 'wb') as f:
-			pickle.dump(self.bus_dict, f)
+		save_pkl(self.bus_dict, self.file_name)
 
 		# if has_file:
 		# 	os.remove(self.bak_name)

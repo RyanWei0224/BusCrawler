@@ -21,7 +21,8 @@ class Changshu(CrawlerBase):
 		}
 
 
-	def get_stations(self, line_json):
+	@classmethod
+	def get_stations(cls, line_json):
 		def _proc(s):
 			lon = s.get('slon', None)
 			lat = s.get('slat', None)

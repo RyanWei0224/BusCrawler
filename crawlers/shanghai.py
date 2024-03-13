@@ -29,7 +29,8 @@ class Shanghai(CrawlerBase):
 		self.direction = direction
 
 
-	def get_stations(self, line_json):
+	@classmethod
+	def get_stations(cls, line_json):
 		stations = [(s['zdmc'], None, None) for s in line_json]
 		return stations
 

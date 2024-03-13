@@ -15,7 +15,8 @@ class ZSCX(CrawlerBase):
 		self.line_data.update(l_info)
 
 
-	def get_stations(self, line_json):
+	@classmethod
+	def get_stations(cls, line_json):
 		def _proc(s):
 			lon = s.get('station_lon', None)
 			lat = s.get('station_lat', None)

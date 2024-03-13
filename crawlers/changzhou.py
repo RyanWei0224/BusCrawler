@@ -11,7 +11,8 @@ class Changzhou(CrawlerBase):
 		self.line_url = f'https://czxxcxapi.czsmk.com:30003/bus/CzBus/V4.1/Station/GetListByLine?Line_Id={lineId}&Line_Type={upDown}'
 
 
-	def get_stations(self, line_json):
+	@classmethod
+	def get_stations(cls, line_json):
 		def _proc(s):
 			if 'LatLng' not in s:
 				lon = None

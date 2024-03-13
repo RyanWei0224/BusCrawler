@@ -1,11 +1,15 @@
+import json
+import pickle
 import time
 from mail import send_mail
 
 TPOINT_STR = '_timep'
+DATE_FORMAT = '%y/%m/%d'
 
 PICKLE_DIR = 'pickle'
 PICBAK_DIR = 'pickle_bak'
-ROUTE_DIR = 'routes'
+ROUTE_DIR  = 'routes'
+CSV_DIR    = 'csv'
 
 LOG_FILE = 'bus.log'
 
@@ -125,12 +129,15 @@ def ljson_files(line_name):
 		t = time.mktime(t)
 		fname = f'{ROUTE_DIR}/{fname}'
 		files.append((t, fname))
+	files.sort()
 	return files
 
 
 def ljson_lastf(line_name):
 	files = ljson_files(line_name)
-	return max(files, default = (-1, None))
+	if not files:
+		return (-1, None)
+	return files[-1]
 
 
 def ljson_allfs():
@@ -151,4 +158,26 @@ def ljson_allfs():
 			files[line_name] = []
 		files[line_name].append((t, fname))
 	return files
+
+
+def load_json(fname):
+	with open(fname, 'r', encoding = 'utf-8') as f:
+		data = json.load(f)
+	return data
+
+
+def save_json(data, fname):
+	with open(fname, 'w', encoding = 'utf-8') as f:
+		json.dump(data, f, ensure_ascii = False, indent = '\t')
+
+
+def load_pkl(fname):
+	with open(fname, 'rb') as f:
+		data = pickle.load(f)
+	return data
+
+
+def save_pkl(data, fname):
+	with open(fname, 'wb') as f:
+		pickle.dump(data, f)
 

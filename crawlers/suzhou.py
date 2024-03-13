@@ -12,7 +12,8 @@ class Suzhou(CrawlerBase):
 		self.line_url = f'https://szgj.2500.tv/api/v1/busline/station?line_guid={line_guid}&token={SZ_TOKEN}'
 
 
-	def get_stations(self, line_json):
+	@classmethod
+	def get_stations(cls, line_json):
 		stations = [(s['standName'], None, None) for s in line_json['standInfo']]
 		return stations
 

@@ -13,7 +13,8 @@ class Jiading(CrawlerBase):
 		self.upDown   = 'false' if upDown == 1 else 'true'
 
 
-	def get_stations(self, line_json):
+	@classmethod
+	def get_stations(cls, line_json):
 		def _proc(s):
 			try:
 				lon = float(s['SOURCE_LON'])

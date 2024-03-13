@@ -18,7 +18,8 @@ class Wuxi(CrawlerBase):
 		self.seg_id = seg_id
 
 
-	def get_stations(self, line_json):
+	@classmethod
+	def get_stations(cls, line_json):
 		def _proc(s):
 			lon = s.get('longitude', None)
 			lat = s.get('latitude', None)

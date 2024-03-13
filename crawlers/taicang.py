@@ -16,7 +16,8 @@ class Taicang(CrawlerBase):
 		self.line_url = f'https://app.tcjyj.xyz/BusService/MiniApps/Query_CrowdBySegmentID?segmentId={lineId}'
 
 
-	def get_stations(self, line_json):
+	@classmethod
+	def get_stations(cls, line_json):
 		stations = [(s['stationName'], None, None) for s in line_json]
 		return stations
 

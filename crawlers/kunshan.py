@@ -17,7 +17,8 @@ class Kunshan(CrawlerBase):
 		self.upDown = upDown
 
 
-	def get_stations(self, line_json):
+	@classmethod
+	def get_stations(cls, line_json):
 		stations = [(s['stationName'], None, None) for s in line_json['station']]
 		return stations
 

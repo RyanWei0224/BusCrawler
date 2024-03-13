@@ -4,7 +4,7 @@ import re
 
 from lines import LINES
 from util import ROUTE_DIR, dict_del
-from util import LINE_JSON_RE, ljson_files, ljson_allfs
+from util import LINE_JSON_RE, ljson_files, ljson_allfs, load_json
 
 MAXL = 500
 
@@ -22,10 +22,8 @@ def clean_route():
 			continue
 
 		name = f'{ROUTE_DIR}/{fname}'
-		with open(name, 'r', encoding = 'utf-8') as f:
-			data = json.load(f)
-		with open(name, 'r', encoding = 'utf-8') as f:
-			data2 = json.load(f)
+		data = load_json(name)
+		data2 = load_json(name)
 
 		if meth == 0:
 			dict_del(data, 'tip')
@@ -201,17 +199,13 @@ def print_diff(data1, data2, pref):
 
 def check_diff(name):
 	datas = ljson_files(name)
-	datas.sort()
 
 	first = True
 	del_list = []
 
 	for (_, d1), (_, d2) in zip(datas, datas[1:]):
-		with open(d1, 'r', encoding = 'utf-8') as f:
-			data1 = json.load(f)
-
-		with open(d2, 'r', encoding = 'utf-8') as f:
-			data2 = json.load(f)
+		data1 = load_json(d1)
+		data2 = load_json(d2)
 
 		print('Diff:', d1, d2)
 		print_diff(data1, data2, '')
@@ -229,11 +223,8 @@ def list_diff():
 	datas.sort(reverse = True)
 
 	for (_, d1, d2) in datas:
-		with open(d1, 'r', encoding = 'utf-8') as f:
-			data1 = json.load(f)
-
-		with open(d2, 'r', encoding = 'utf-8') as f:
-			data2 = json.load(f)
+		data1 = load_json(d1)
+		data2 = load_json(d2)
 
 		print('Diff:', d1, d2)
 		print_diff(data1, data2, '')
@@ -242,17 +233,13 @@ def list_diff():
 
 def reset_route(name):
 	datas = ljson_files(name)
-	datas.sort()
 
 	first = True
 	del_list = []
 
 	for (_, d1), (_, d2) in zip(datas, datas[1:]):
-		with open(d1, 'r', encoding = 'utf-8') as f:
-			data1 = json.load(f)
-
-		with open(d2, 'r', encoding = 'utf-8') as f:
-			data2 = json.load(f)
+		data1 = load_json(d1)
+		data2 = load_json(d2)
 
 		if data2 == data1:
 			del_list.append(d2)
