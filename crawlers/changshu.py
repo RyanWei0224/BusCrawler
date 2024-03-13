@@ -35,7 +35,7 @@ class Changshu(CrawlerBase):
 			lat = bus_data.get('slat', None)
 			return (bus_data['dbuscard'], bus_data['slno'] - 1, in_station, lon, lat)
 
-		bus_datas = [_proc(i) for i in res_json['content']]
+		bus_datas = [_proc(i) for i in res_json]
 		return bus_datas, None
 
 
@@ -51,6 +51,7 @@ class Changshu(CrawlerBase):
 			res_json, get_t = super()._get_json(self.bus_url)
 			if res_json['type'] != 'response' or res_json['status'] != '200':
 				assert False, f'Failed! type: {res_json["type"]}, status: {res_json["status"]}'
+			res_json = res_json['content']
 
 		return res_json, get_t
 

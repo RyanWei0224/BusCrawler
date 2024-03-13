@@ -109,6 +109,7 @@ def ping_thread(lines, stop_l):
 
 	for i in thrs:
 		i.start()
+		sleep_intr(3, stop_l)
 	for i in thrs:
 		i.join()
 	return
