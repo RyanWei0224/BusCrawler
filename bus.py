@@ -145,28 +145,42 @@ def main(l, pl):
 
 	stop_l = []
 	running = dict()
+	ping_pong = True
 
 	try:
 		ping_thr = Worker(target = ping_thread, args = (pl, stop_l))
 		ping_thr.start()
 
 		while True:
-			time.sleep(1)
-			ct = cur_time()
-			if ct < CT(1, 0) and running:
-				for i in running.values():
-					i.join()
-				running.clear()
-				update_routes(l)
+			time.sleep(2)
 
+			# Join workers
+			join_procs = []
+			for k, v in running.items():
+				if not v.is_alive():
+					v.join()
+					join_procs.append(k)
+			for k in join_procs:
+				del running[k]
+
+			# Start workers
 			for bus_name in l.keys():
 				line_info, startt, endt, meth = l[bus_name]
+				ct = cur_time()
 				if bus_name not in running and startt <= ct and ct < endt:
 					crawler = ALL_CRAWLERS[meth](bus_name, line_info)
 					thr = Worker(target = line_thread, args = (crawler, endt, stop_l))
 					running[bus_name] = thr
 					thr.start()
 					time.sleep(2)
+
+			# Update between 0:00 and 5:00
+			ct = cur_time()
+			if ping_pong and ct <= CT(5, 0): # and ct >= CT(0, 0)
+				update_routes(l)
+				ping_pong = False
+			elif (not ping_pong) and ct > CT(6, 0):
+				ping_pong = True
 
 	except KeyboardInterrupt:
 		print('Ctrl-C detected. Stopping...')

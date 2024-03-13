@@ -95,6 +95,8 @@ def print_diff(data1, data2, pref):
 		for i in data1:
 			if i not in data2:
 				continue
+			if i == 'jxPath':
+				continue
 			print_diff(data1[i], data2[i], f'{pref}[{i}]')
 
 		return
@@ -125,6 +127,9 @@ def print_diff(data1, data2, pref):
 			elif all_in('lpName'):
 				keys.add('lpName')
 				serial_print = True
+			elif all_in('namesakeStId') and all_in('distanceToSp'):
+				keys.add('namesakeStId')
+				keys.add('distanceToSp')
 
 			def remove_keys(l, keys):
 				if not keys:
