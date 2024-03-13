@@ -5,7 +5,7 @@ import requests
 import time
 from lxml import etree
 
-from .util import TPOINT_STR, PICKLE_DIR
+from .util import TPOINT_STR, PICKLE_DIR, PICBAK_DIR
 from .util import merge_dict, dict_empty, ljson_name, ljson_lastf
 
 
@@ -21,7 +21,7 @@ class CrawlerBase:
 		self.bus_url = None
 
 		self.file_name = f'{PICKLE_DIR}/{self.bus_name}.pickle'
-		self.bak_name = f'{PICKLE_DIR}/{self.bus_name}_bak.pickle'
+		self.bak_name = f'{PICBAK_DIR}/{self.bus_name}_bak.pickle'
 
 		self.line_json = self.load_line()
 		self._stop = False
