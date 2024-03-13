@@ -1,4 +1,20 @@
 
+SHA_TOKEN = ''
+
+SHA_HEADERS = {
+	'Host': 'smartgate.ywtbsupappw.sh.gov.cn',
+#	'Authentication': SHA_TOKEN,
+	# ...
+}
+
+SHA_DATA = {
+	"userSystemData": {
+		"brand":"microsoft",
+		# ...
+	},
+	"sessionId": SHA_TOKEN
+}
+
 ZSCX_HEADERS = {
 	'Host': 'wx.mygolbs.com',
 	'Connection': 'keep-alive',

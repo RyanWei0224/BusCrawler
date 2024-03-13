@@ -13,7 +13,13 @@ LAST_STR = '_last_dict'
 
 HAS_BOTH = False
 
-HOURS = 3 * 24
+HOURS = 2 * 24
+
+BAD_STAT = (-4, -1)
+
+ROUTE_METHODS = [
+	''
+]
 
 # 13, 0 : 13 -> 14
 # 13, 1 : at 13
@@ -28,6 +34,8 @@ def danyang(bus_data, station_data):
 	# 0, 1, 2, ...
 	# 13, 2 : 13 -> 14
 	# 13, 1 : at 13
+	if 'stationId' not in bus_data:
+		return (-1,) + BAD_STAT
 	station_id = bus_data['stationId']
 	return (bus_data['busId'], station_data.index(station_id), 2-int(bus_data['busStatus']))
 
@@ -59,7 +67,11 @@ def suzhou(bus_data, station_data):
 		station_id = station_data.index(None)
 	else:
 		raise ValueError(f'"{station_id}" not in station_data')
-	return (bus_data['busInfo'], station_id, 0)
+	bus_id = bus_data['busInfo']
+	if isinstance(bus_id, list):
+		assert not bus_id, f'List of busInfo must be empty!'
+		return (-1,) + BAD_STAT
+	return (bus_id, station_id, 0)
 
 def kunshan(bus_data, station_data):
 	# 1, 2, 3, ...
@@ -71,7 +83,40 @@ def kunshan(bus_data, station_data):
 def changshu(bus_data, station_data):
 	# 1, 2, 3, ...
 	arrive = 1
-	return (bus_data['dbuscard'], bus_data['slno'] - (1-arrive) - 1, arrive)
+	return (bus_data['dbuscard'], bus_data['slno'] - 1, arrive)
+
+def zhangjiagang(bus_data, station_data):
+	# 1, 2, 3, ...
+	# 12, 0(1) : at 12
+	# 12, 2 : 12 -> 13
+	assert bus_data['inoutFlag'] in [0, 1, 2], f'bus_data["inoutFlag"] is {bus_data["inoutFlag"]}'
+	arrive = 1 if bus_data['inoutFlag'] != 2 else 0
+	return (bus_data['carNo'], bus_data['sortNum'] - 1, arrive)
+
+def jiading(bus_data, station_data):
+	# 0, 1, ..., N-1
+	# 1, 1: at N-2
+	# 1, 0: N-2 -> N-1
+	rem_stop = int(bus_data['stopdis'])
+	cur_stop = (station_data - 1) - rem_stop
+	return (bus_data['terminal'], cur_stop, int(bus_data['inout']))
+
+def shanghai(bus_data, station_data):
+	# 0, 1, ..., N-1
+	# 1, 1: at N-2
+	# 1, 0: N-2 -> N-1
+	rem_stop = int(bus_data['stopdis'])
+	cur_stop = (station_data - 1) - rem_stop
+	return (bus_data['terminal'], cur_stop, 1)
+
+def taicang(bus_data, station_data):
+	in_station = 1 - bus_data['inoutType']
+	if in_station != 0:
+		print(f'In station {1 - in_station}')
+		in_station = 1
+	return (bus_data['busName'], bus_data['arriveStationNo'] - 1, in_station)
+
+
 
 def proc(cur_dict, bus_datas, station_data, daytime, f):
 	cur_ids = set()
@@ -79,7 +124,7 @@ def proc(cur_dict, bus_datas, station_data, daytime, f):
 		bus_id, station_id, bus_stat = f(bus_data, station_data)
 		if station_id >= 0 and bus_stat in (0, 1):
 			pass
-		elif (station_id, bus_stat) == (-4, -1):
+		elif (station_id, bus_stat) == BAD_STAT:
 			# WT wrong state?
 			continue
 		else:
@@ -248,6 +293,8 @@ def proc_all(remove_route):
 				dict_del(data, 'preArrivalTime')
 				dict_del(data, 'predictionLink')
 				dict_del(data, 'predictionText')
+				dict_del(data, 'nearStnOrder')
+				dict_del(data, 'targetOrder')
 				'''
 				for i in data['roads']:
 					for j in i:
@@ -295,6 +342,8 @@ def proc_all(remove_route):
 
 				bus_datas = data['items']
 
+				data = None
+				'''
 				data = data['_line']
 
 				if data is not None:
@@ -302,6 +351,7 @@ def proc_all(remove_route):
 						assert False, f'Failed! (Line) result: {data["result"]}, message: {data["message"]}'
 
 					data = data['items']
+				'''
 			elif meth == 5:
 				func = suzhou
 
@@ -314,11 +364,14 @@ def proc_all(remove_route):
 
 				bus_datas = []
 				if 'standInfo' in data['data']:
-					for k, vs in data['data']['standInfo'].items():
-						for v in vs:
-							v = v.copy()
-							v['_stop'] = k
-							bus_datas.append(v)
+					if isinstance(data['data']['standInfo'], list):
+						assert not data['data']['standInfo'], f'List of standInfo must be empty!'
+					else:
+						for k, vs in data['data']['standInfo'].items():
+							for v in vs:
+								v = v.copy()
+								v['_stop'] = k
+								bus_datas.append(v)
 
 				data = data['_line']
 
@@ -341,6 +394,52 @@ def proc_all(remove_route):
 					assert False, f'Failed! type: {data["type"]}, status: {data["status"]}'
 
 				bus_datas = data['content']
+				data = None
+			elif meth == 8:
+				func = zhangjiagang
+				if data['code'] != 0 or data['ok'] != True:
+					assert False, f'Failed! code: {data["code"]}, ok: {data["ok"]}'
+
+				data = data['data']
+				bus_datas = data['busInfo']
+				data = {
+					i : data[i] for i in ['line', 'lineStationInfo', 'lintTime']
+				}
+				del data['line']['updateTime']
+				for i in data['lineStationInfo']:
+					del i['updateTime']
+				for i in data['lintTime']:
+					del i['updateTime']
+					del i['createTime']
+					del i['id']
+			elif meth == 9:
+				func = jiading
+				bus_datas = data['data']
+				data = data['_line']
+				station_data = len(data['line'])
+
+				for i in data['sch']:
+					dict_del(i, 'id')
+					dict_del(i, 'scheduleDateStr')
+					dict_del(i, 'nbbm')
+					dict_del(i, 'jsy')
+			elif meth == 10:
+				func = shanghai
+				if data['code'] != '200' or data['desc'] != '操作成功':
+					assert False, f'Failed! code: {data["code"]}, desc: {data["desc"]}'
+
+				bus_datas = data['data']
+				if isinstance(bus_datas, str):
+					bus_datas = []
+				else:
+					bus_datas = bus_datas['cars']['car']
+
+				data = data['_line']
+				station_data = len(data)
+			elif meth == 11:
+				func = taicang
+
+				bus_datas = data['items']
 				data = None
 			else:
 				assert False, f'Unknown meth {meth}'
@@ -383,7 +482,7 @@ def proc_all(remove_route):
 		os.mkdir(OLD_JSON_DIR)
 
 	assert all(i in all_set for i in wrong_set)
-	all_wrong = (len(all_set) == len(wrong_set))
+	all_wrong = (len(all_set) == len(wrong_set) and all_set)
 
 	return glb_dict, finish_list, wrong_set, all_wrong
 

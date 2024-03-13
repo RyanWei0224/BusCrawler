@@ -1,4 +1,3 @@
-
 import json
 import pickle
 import os
@@ -18,6 +17,16 @@ ROUTE_CSV = 'route.csv'
 HAS_BOTH = False
 
 ROUTE_STR = r'(.*)_(\d{2})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})_line\.json'
+
+WDAY_LIST = [
+	'星期一',
+	'星期二',
+	'星期三',
+	'星期四',
+	'星期五',
+	'星期六',
+	'星期日',
+]
 
 BUS_LIST = [
 	('ZJ_606',	1,	54),	# 2023/6/29
@@ -39,6 +48,10 @@ BUS_LIST = [
 	('SZR_158', 2, 34, 39),	# 2023/7/16
 	('SZR_KX9', 6, 25, 28),	# 2023/9/18
 	('SZR_113',23, 25, 35),	# 2023/7/27
+	('KS_C2',	1,	19),	# -
+	('KS_126',	1,	23),	# -
+	('KS_101',	2,	 3),	# -
+	('KS_102',	1, 17, 33), # -
 ]
 
 FIRST_TIME = '23/10/31'
@@ -182,17 +195,25 @@ def get_stations(fname, meth):
 	elif meth == 1:
 		stations = [s['stationName'] for s in data['stationDetailList']]
 	elif meth == 2:
-		assert False
+		stations = [s['stationName'] for s in data['data']]
 	elif meth == 3:
-		assert False
+		stations = [s['Station_Name'] for s in data]
 	elif meth == 4:
-		return None
+		stations = [s['stationName'] for s in data['stations']]
 	elif meth == 5:
 		stations = [s['standName'] for s in data['standInfo']]
 	elif meth == 6:
-		assert False
+		stations = [s['stationName'] for s in data['station']]
 	elif meth == 7:
-		assert False
+		stations = [s['sname'] for s in data['list']]
+	elif meth == 8:
+		stations = [s['stationName'] for s in data['lineStationInfo']]
+	elif meth == 9:
+		stations = [s['ZDMC'] for s in data['line']]
+	elif meth == 10:
+		stations = [s['zdmc'] for s in data]
+	elif meth == 11:
+		stations = [s['stationName'] for s in data]
 	else:
 		assert False, f'Unknown meth {meth}'
 
@@ -224,7 +245,8 @@ def get_route_info(meth_dict):
 
 	for bus_name, t, fname, day, daytime in route_list:
 		if bus_name not in meth_dict:
-			print(f'Cannot find {bus_name}')
+			# print(f'Cannot find {bus_name}')
+			continue
 		meth = meth_dict.get(bus_name, 0)
 		try:
 			stations = get_stations(fname, meth)
@@ -277,135 +299,159 @@ def post_proc(obus_dict, num_stations):
 			i[key].append((LAST_STR, w))
 
 
-with open('all.pickle', 'rb') as f:
-	d = pickle.load(f)
+def main():
+	with open('all.pickle', 'rb') as f:
+		d = pickle.load(f)
 
-'''
-with open('all.json', 'r', encoding = 'utf-8') as f:
-	d = json.load(f)
-'''
+	'''
+	with open('all.json', 'r', encoding = 'utf-8') as f:
+		d = json.load(f)
+	'''
+	from lines import LINES
+	del_keys = [k for k in d if k not in LINES]
+	for k in del_keys:
+		del d[k]
 
-meth_dict = {bus_name: d[bus_name].pop(METHOD_STR) for bus_name in d if METHOD_STR in d[bus_name]}
+	meth_dict = {bus_name: d[bus_name].pop(METHOD_STR) for bus_name in d if METHOD_STR in d[bus_name]}
 
-num_stations = dict()
-for line in d:
-	linfo = d[line]
-	if HAS_BOTH:
-		n = max((k for i in linfo.values() for l, j in i.items() if l != LAST_STR for (k, _), _ in j.items()), default = 0) + 1
-	else:
-		n = max((k for i in linfo.values() for l, j in i.items() if l != LAST_STR for k, _ in j.items()), default = 0) + 1
-	num_stations[line] = n
-
-
-post_proc(d, num_stations)
-route_dict = get_route_info(meth_dict)
-
-for line in d:
-	f = open(f'{CSV_FOLDER}/{line}.csv', 'w', encoding = 'GBK')
-	linfo = d[line]
-	n = num_stations[line]
-	print(f'{line},', end = '', file = f)
-	print(*list(range(1, n+1)), sep = ',', end = '', file = f)
-	print(',last', file = f)
-
-	last_s = None
-	for day_str, stations in route_dict[line]:
-
-		stations = ','.join(stations)
-		if stations == last_s:
-			continue
-		print(f'{day_str},{stations}', file = f)
-		last_s = stations
-
-	for day in linfo:
-		dinfo = linfo[day]
-		print(day, file = f)
-		last_info = dinfo.pop()
-		assert last_info[0] == LAST_STR
-		last_info = last_info[1]
-		for car, cinfo in dinfo:
-			if len(cinfo) <= 1:
-				continue
-
-			assert car in last_info, f'data[{line}][{day}][{LAST_STR}] has no {car}...'
-
-			if HAS_BOTH:
-				x = [''] * n
-				y = [''] * n
-				for i, j in cinfo:
-					station_id, bus_stat = i
-					if bus_stat == 1:
-						z = x
-					else:
-						assert bus_stat == 0
-						z = y
-					assert z[station_id] == ''
-					z[station_id] = j
-				x = [f'{i}-{j}' for i, j in zip(x, y)]
-			else:
-				x = ['-'] * n
-				for i, j in cinfo:
-					assert x[i] == '-'
-					x[i] = j
-
-			x = [car] + x + [last_info[car][0] + (('-' + last_info[car][-1]) if last_info[car][-1] is not None else '')]
-			print(*x, sep = ',', file = f)
-	f.close()
-
-with open(ROUTE_CSV, 'w', encoding = 'GBK') as f:
-	line1 = ''
-	line2 = ''
-	s = None
-	for line_info in BUS_LIST:
-		line = line_info[0]
-		line_info = [i-1 for i in line_info[1:]]
-		route = route_dict[line][-1][-1]
-		line1 += f',{line}' + ',' * (len(line_info)-1)
-		line2 += f',' + ','.join((route[i] for i in line_info))
+	num_stations = dict()
+	for line in d:
 		linfo = d[line]
-		if s is None:
-			s = set(linfo.keys())
+		if HAS_BOTH:
+			n = max((k for i in linfo.values() for l, j in i.items() if l != LAST_STR for (k, _), _ in j.items()), default = 0) + 1
 		else:
-			s = s & set(linfo.keys())
-	# print(s)
-	s = [i for i in s if i >= FIRST_TIME]
-	s.sort()
-	for date in s:
-		print(date + line1, line2, sep = '\n', file = f)
-		dd = [] # [[] for _ in BUS_LIST] + [[] for _ in BUS_LIST]
+			n = max((k for i in linfo.values() for l, j in i.items() if l != LAST_STR for k, _ in j.items()), default = 0) + 1
+		num_stations[line] = n
+
+
+	post_proc(d, num_stations)
+	route_dict = get_route_info(meth_dict)
+
+	for line in d:
+		try:
+			f = open(f'{CSV_FOLDER}/{line}.csv', 'w', encoding = 'GBK')
+		except Exception as e:
+			print(f'Cannot open {line}.csv, skipping...')
+			continue
+		linfo = d[line]
+		n = num_stations[line]
+		print(f'{line},', end = '', file = f)
+		print(*list(range(1, n+1)), sep = ',', end = '', file = f)
+		print(',last', file = f)
+
+		last_s = None
+		for day_str, stations in route_dict[line]:
+
+			stations = ','.join(stations)
+			if stations == last_s:
+				continue
+			print(f'{day_str},{stations}', file = f)
+			last_s = stations
+
+		for day in reversed(linfo):
+			dinfo = linfo[day]
+			wday = time.strptime(day, '%y/%m/%d').tm_wday
+			wday = WDAY_LIST[wday]
+			print(f'{day},{wday}', file = f)
+			last_info = dinfo.pop()
+			assert last_info[0] == LAST_STR
+			last_info = last_info[1]
+			for car, cinfo in dinfo:
+				if len(cinfo) <= 1:
+					continue
+
+				assert car in last_info, f'data[{line}][{day}][{LAST_STR}] has no {car}...'
+
+				if HAS_BOTH:
+					x = [''] * n
+					y = [''] * n
+					for i, j in cinfo:
+						station_id, bus_stat = i
+						if bus_stat == 1:
+							z = x
+						else:
+							assert bus_stat == 0
+							z = y
+						assert z[station_id] == ''
+						z[station_id] = j
+					x = [f'{i}-{j}' for i, j in zip(x, y)]
+				else:
+					x = ['-'] * n
+					for i, j in cinfo:
+						assert x[i] == '-'
+						x[i] = j
+
+				x = [car] + x + [last_info[car][0] + (('-' + last_info[car][-1]) if last_info[car][-1] is not None else '')]
+				print(*x, sep = ',', file = f)
+		f.close()
+
+	'''
+	with open(ROUTE_CSV, 'w', encoding = 'GBK') as f:
+		line1 = ''
+		line2 = ''
+		s = None
 		for line_info in BUS_LIST:
 			line = line_info[0]
 			line_info = [i-1 for i in line_info[1:]]
-			assert not HAS_BOTH
-			cur_dd = [[] for _ in line_info]
-			for _, cinfo in d[line][date]:
-				names = ['' for _ in line_info]
-				minus = ['' for _ in line_info]
-				plus  = ['' for _ in line_info]
-				for k, v in cinfo:
-					for i, j in enumerate(line_info):
-						if k == j:
-							names[i] = v
-						if k == j-1:
-							minus[i] = v
-						if k == j+1:
-							plus[i] = v
-				for i in range(len(names)):
-					if not names[i]:
-						names[i] = f'{minus[i]}-{plus[i]}'
-					cur_dd[i].append(names[i])
-			dd += cur_dd
+			line1 += f',{line}' + ',' * (len(line_info)-1)
+			if route_dict[line]:
+				route = route_dict[line][-1][-1]
+				line2 += f',' + ','.join((route[i] for i in line_info))
+			else:
+				line2 += ',' * len(line_info)
+			linfo = d[line]
+			if s is None:
+				s = set(linfo.keys())
+			else:
+				s = s & set(linfo.keys())
+		# print(s)
+		s = [i for i in s if i >= FIRST_TIME]
+		s.sort()
+		s.reverse()
+		for date in s:
+			print(date + line1, line2, sep = '\n', file = f)
+			dd = [] # [[] for _ in BUS_LIST] + [[] for _ in BUS_LIST]
+			for line_info in BUS_LIST:
+				line = line_info[0]
+				line_info = [i-1 for i in line_info[1:]]
+				assert not HAS_BOTH
+				cur_dd = [[] for _ in line_info]
+				for _, cinfo in d[line][date]:
+					names = ['' for _ in line_info]
+					minus = ['' for _ in line_info]
+					plus  = ['' for _ in line_info]
+					for k, v in cinfo:
+						for i, j in enumerate(line_info):
+							if k == j:
+								names[i] = v
+							if k == j-1:
+								minus[i] = v
+							if k == j+1:
+								plus[i] = v
+					for i in range(len(names)):
+						if not names[i]:
+							names[i] = f'{minus[i]}-{plus[i]}'
+						cur_dd[i].append(names[i])
+				dd += cur_dd
 
-		# print(date + (',' * len(dd)), file = f)
-		n = max(len(i) for i in dd)
-		for i in range(n):
-			cur_str = ''
-			for w in dd:
-				cur_str += ','
-				if len(w) > i:
-					cur_str += w[i]
-				else:
-					cur_str += '#####'
-			print(cur_str, file = f)
+			# print(date + (',' * len(dd)), file = f)
+			n = max(len(i) for i in dd)
+			for i in range(n):
+				cur_str = ''
+				for w in dd:
+					cur_str += ','
+					if len(w) > i:
+						cur_str += w[i]
+					else:
+						cur_str += '#####'
+				print(cur_str, file = f)
+	'''
 
-_=input('Done...')
+if __name__ == '__main__':
+	try:
+		main()
+	except Exception as e:
+		print(f'Caught exception {e}')
+		raise
+	finally:
+		_=input('Done...')
