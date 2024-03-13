@@ -105,3 +105,50 @@ def print_log(*args, verbose = False, **kwargs):
 	if verbose:
 		print(f'[{time.strftime("%m/%d %X")}]', *args, **kwargs)
 
+
+LINE_JSON_FMT =  '{lname}_%y%m%d_%H%M%S_line.json'
+LINE_JSON_RE  = r'(.*)_\d{6}_\d{6}_line\.json'
+
+
+def ljson_name(line_name, t):
+	return time.strftime(f'{ROUTE_DIR}/{LINE_JSON_FMT.format(lname = line_name)}', t)
+
+
+def ljson_files(line_name):
+	import os
+	files = []
+	for fname in os.listdir(ROUTE_DIR):
+		try:
+			t = time.strptime(fname, LINE_JSON_FMT.format(lname = line_name))
+		except ValueError:
+			continue
+		t = time.mktime(t)
+		fname = f'{ROUTE_DIR}/{fname}'
+		files.append((t, fname))
+	return files
+
+
+def ljson_lastf(line_name):
+	files = ljson_files(line_name)
+	return max(files, default = (-1, None))
+
+
+def ljson_allfs():
+	import os, re
+	files = dict()
+	for fname in os.listdir(ROUTE_DIR):
+		res = re.fullmatch(LINE_JSON_RE, fname)
+		if res is None:
+			continue
+		line_name = res[1]
+		try:
+			t = time.strptime(fname, LINE_JSON_FMT.format(lname = line_name))
+		except ValueError:
+			continue
+		t = time.mktime(t)
+		fname = f'{ROUTE_DIR}/{fname}'
+		if line_name not in files:
+			files[line_name] = []
+		files[line_name].append((t, fname))
+	return files
+

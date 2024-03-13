@@ -1,26 +1,17 @@
 import os
-import time
 import json
 import re
 
-from collections import defaultdict
-
 from lines import LINES
-
-ROUTE_DIR = 'routes'
+from util import ROUTE_DIR, dict_del
+from util import LINE_JSON_RE, ljson_files, ljson_allfs
 
 MAXL = 500
-
-def dict_del(d, k):
-	if k in d:
-		del d[k]
-		return True
-	return False
 
 
 def clean_route():
 	for fname in os.listdir(ROUTE_DIR):
-		res = re.fullmatch(r'(.*)_\d{6}_\d{6}_line\.json', fname)
+		res = re.fullmatch(LINE_JSON_RE, fname)
 		assert res is not None, f'Cannot match "{fname}"'
 		bus_name = res[1]
 		if bus_name not in LINES:
@@ -204,16 +195,7 @@ def print_diff(data1, data2, pref):
 
 
 def check_diff(name):
-	datas = []
-	for i in os.listdir(ROUTE_DIR):
-		try:
-			t = time.strptime(i, f'{name}_%y%m%d_%H%M%S_line.json')
-		except ValueError:
-			continue
-		t = time.mktime(t)
-		data = f'{ROUTE_DIR}/{i}'
-		datas.append((t, data))
-
+	datas = ljson_files(name)
 	datas.sort()
 
 	first = True
@@ -230,26 +212,15 @@ def check_diff(name):
 		print_diff(data1, data2, '')
 		_=input()
 
+
 def list_diff():
-	data_dict = defaultdict(list)
-	for i in os.listdir(ROUTE_DIR):
-		res = re.fullmatch(r'(.*)_\d{6}_\d{6}_line\.json', i)
-		if res is None:
-			continue
-		name = res[1]
-		try:
-			t = time.strptime(i, f'{name}_%y%m%d_%H%M%S_line.json')
-		except ValueError:
-			continue
-		t = time.mktime(t)
-		data = f'{ROUTE_DIR}/{i}'
-		data_dict[name].append((t, data))
+	data_dict = ljson_allfs()
 
 	datas = []
 	for l in data_dict.values():
 		l.sort()
 		datas += [(t2, d1, d2) for (t1, d1), (t2, d2) in zip(l, l[1:])]
-	
+
 	datas.sort(reverse = True)
 
 	for (_, d1, d2) in datas:
@@ -265,16 +236,7 @@ def list_diff():
 
 
 def reset_route(name):
-	datas = []
-	for i in os.listdir(ROUTE_DIR):
-		try:
-			t = time.strptime(i, f'{name}_%y%m%d_%H%M%S_line.json')
-		except ValueError:
-			continue
-		t = time.mktime(t)
-		data = f'{ROUTE_DIR}/{i}'
-		datas.append((t, data))
-
+	datas = ljson_files(name)
 	datas.sort()
 
 	first = True
@@ -320,16 +282,18 @@ def reset_route(name):
 	for i in del_list:
 		os.remove(i)
 
+
 def reset_route_all():
 	names = set()
 	for i in os.listdir(ROUTE_DIR):
-		res = re.fullmatch(r'(.*)_\d{6}_\d{6}_line\.json', i)
+		res = re.fullmatch(LINE_JSON_RE, i)
 		if res is None:
 			continue
 		name = res[1]
 		names.add(name)
 	for name in names:
 		reset_route(name)
+
 
 def main():
 	clean_route()
@@ -340,5 +304,7 @@ def main():
 	#check_diff(input('Line:'))
 	list_diff()
 
+
 if __name__ == '__main__':
 	main()
+

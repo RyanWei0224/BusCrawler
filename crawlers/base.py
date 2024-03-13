@@ -5,8 +5,8 @@ import requests
 import time
 from lxml import etree
 
-from .util import TPOINT_STR, PICKLE_DIR, ROUTE_DIR
-from .util import merge_dict, dict_empty
+from .util import TPOINT_STR, PICKLE_DIR
+from .util import merge_dict, dict_empty, ljson_name, ljson_lastf
 
 
 class CrawlerBase:
@@ -86,19 +86,8 @@ class CrawlerBase:
 
 
 	def load_line(self):
-		line_file = None
-		maxt = -1
-		for i in os.listdir(ROUTE_DIR):
-			try:
-				t = time.strptime(i, f'{self.bus_name}_%y%m%d_%H%M%S_line.json')
-			except ValueError:
-				continue
-			t = time.mktime(t)
-			if t <= maxt:
-				continue
-			maxt = t
-			line_file = f'{ROUTE_DIR}/{i}'
-			
+		_, line_file = ljson_lastf(self.bus_name)
+
 		if line_file is None:
 			return None
 
@@ -153,7 +142,7 @@ class CrawlerBase:
 
 		self.line_json = line_json
 
-		line_file = time.strftime(f'{ROUTE_DIR}/{self.bus_name}_%y%m%d_%H%M%S_line.json', get_t)
+		line_file = ljson_name(self.bus_name, get_t)
 		assert not os.path.isfile(line_file), f'File {line_file} already exists!'
 
 		with open(line_file, 'w', encoding = 'utf-8') as f:
