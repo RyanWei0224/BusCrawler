@@ -421,8 +421,10 @@ def main(per_bus = True):
 		return None
 
 	# post_proc(glb_dict)
+	'''
 	with open('all.json', 'w', encoding = 'utf-8') as f:
 		json.dump(glb_dict, f, ensure_ascii = False, indent = '\t')
+	'''
 
 	shutil.copy2('all.pickle', 'all_bak.pickle')
 	with open('all.pickle', 'wb') as f:
