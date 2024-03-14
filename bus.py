@@ -123,7 +123,7 @@ def check_lines(l):
 
 	urls = dict()
 	for name in l:
-		if name in ['SZR_106M_2', 'TCR_308Y_2', 'CZR_89R', 'CZR_89_2R']:
+		if name in ['SZR_106M_2', 'TCR_308Y_2', 'TC_308Y_2', 'TCR_308Z_2', 'TC_308Z_2', 'CZR_89R', 'CZR_89_2R']:
 			continue
 		var = l[name]
 		url = (proc(var[0]), var[-1])
