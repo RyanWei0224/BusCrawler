@@ -23,9 +23,7 @@ def get_req(crawler, endt = None, stop_l = [], get_line = False, update = True):
 				raise e
 
 			err_str = f'Error "{e}" at {crawler.name()}'
-			if get_line:
-				print(err_str)
-			print_log(err_str)
+			print_log(err_str, verbose = get_line)
 
 			if '429 Client Error: Too Many Requests' in str(e):
 				sleep_intr(30, stop_l)
@@ -53,8 +51,7 @@ def get_req(crawler, endt = None, stop_l = [], get_line = False, update = True):
 			func = crawler.update_route if get_line else crawler.proc_update
 			func(res_json, get_t)
 		except Exception as e:
-			print(f'Exception at proc {crawler.name()}: {e}')
-			print_log(f'Exception at proc {crawler.name()}: {e}')
+			print_log(f'Exception at proc {crawler.name()}: {e}', verbose = True)
 
 		break
 
@@ -70,7 +67,7 @@ def line_thread(crawler, endt, stop_l, update = True, intv = INTV):
 			try:
 				get_req(crawler, endt = endt, stop_l = stop_l, update = update)
 			except Exception as e:
-				print(f'At line {crawler.name()}: {e} of {type(e)}')
+				print_log(f'At line {crawler.name()}: {e} of {type(e)}', verbose = True)
 				return
 			t0 = time.time() - t0
 			print_log(f'Delay: {t0:.2f}s. {crawler.name()}')

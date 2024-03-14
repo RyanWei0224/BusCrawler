@@ -50,7 +50,6 @@ class Wuxi(CrawlerBase):
 				self.WX_HEADERS['token'] = new_token
 				time.sleep(1)
 			except Exception as e:
-				print(e)
 				self._stop = True
 				if self.METH not in self.EMAIL_SENT:
 					self.EMAIL_SENT[self.METH] = 1
