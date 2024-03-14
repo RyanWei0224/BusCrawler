@@ -142,6 +142,7 @@ def main(l, pl):
 
 	stop_l = []
 	running = dict()
+	finished = set()
 	ping_pong = True
 
 	try:
@@ -159,9 +160,12 @@ def main(l, pl):
 					join_procs.append(k)
 			for k in join_procs:
 				del running[k]
+				finished.add(k)
 
 			# Start workers
 			for bus_name in l.keys():
+				if bus_name in finished:
+					continue
 				line_info, startt, endt, meth = l[bus_name]
 				ct = cur_time()
 				if bus_name not in running and startt <= ct and ct < endt:
@@ -175,6 +179,7 @@ def main(l, pl):
 			ct = cur_time()
 			if ping_pong and ct <= CT(5, 0): # and ct >= CT(0, 0)
 				update_routes(l)
+				finished.clear()
 				ping_pong = False
 			elif (not ping_pong) and ct > CT(6, 0):
 				ping_pong = True
