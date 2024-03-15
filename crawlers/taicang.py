@@ -14,6 +14,8 @@ class Taicang(CrawlerBase):
 		lineId = line_info
 		self.bus_url  = f'https://app.tcjyj.xyz/BusService/MiniApps/Query_BusBySegmentID?segmentId={lineId}'
 		self.line_url = f'https://app.tcjyj.xyz/BusService/MiniApps/Query_CrowdBySegmentID?segmentId={lineId}'
+		if TC_TOKEN is None:
+			self._stop = True
 
 
 	@classmethod

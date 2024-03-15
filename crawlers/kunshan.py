@@ -15,6 +15,8 @@ class Kunshan(CrawlerBase):
 		self.bus_url  = f'https://zsgj.ksbus.com.cn//realInfo/vehPosiLine?lineId={lineId}&updown={upDown}&curStationNum=1&planReturn=1&max=2'
 		self.line_url = f'https://zsgj.ksbus.com.cn//line/basic/{lineId}'
 		self.upDown = upDown
+		if KS_TOKEN is None:
+			self._stop = True
 
 
 	@classmethod

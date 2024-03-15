@@ -1,5 +1,5 @@
 from .base import CrawlerBase
-from .util import SH_HEADERS, SH_DATA, send_mail
+from .util import SH_HEADERS, SH_DATA, SH_TOKEN, send_mail
 
 
 class Shanghai(CrawlerBase):
@@ -27,6 +27,8 @@ class Shanghai(CrawlerBase):
 		self.line_data['params'] = d
 		self.line_data.update(d)
 		self.direction = direction
+		if SH_TOKEN is None:
+			self._stop = True
 
 
 	@classmethod

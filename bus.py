@@ -91,6 +91,9 @@ def update_routes(lines):
 
 		try:
 			crawler = ALL_CRAWLERS[meth](name, line_info)
+			if crawler.stop():
+				print_log(f'At update_routes: skipping {name}', verbose = True)
+				continue
 			get_req(crawler, get_line = True)
 		except Exception as e:
 			print(type(e), e, name, "at update_routes")
@@ -99,10 +102,14 @@ def update_routes(lines):
 
 
 def ping_thread(lines, stop_l):
-	thrs = [Worker(target = line_thread,
-				args = (ALL_CRAWLERS[v[-1]](k, v[0]), None, stop_l),
-				kwargs = {'update': False, 'intv': PING_INTV})
-			for k, v in lines.items()]
+	thrs = []
+	for k, v in lines.items():
+		crawler = ALL_CRAWLERS[v[-1]](k, v[0])
+		if crawler.stop():
+			print_log(f'At ping: skipping {k}', verbose = True)
+			continue
+		thr = Worker(target = line_thread, args = (crawler, None, stop_l), kwargs = {'update': False, 'intv': PING_INTV})
+		thrs.append(thr)
 
 	for i in thrs:
 		i.start()
@@ -170,10 +177,15 @@ def main(l, pl):
 				ct = cur_time()
 				if bus_name not in running and startt <= ct and ct < endt:
 					crawler = ALL_CRAWLERS[meth](bus_name, line_info)
-					thr = Worker(target = line_thread, args = (crawler, endt, stop_l))
-					running[bus_name] = thr
-					thr.start()
-					time.sleep(2)
+					# Test if crawler not available
+					if crawler.stop():
+						print_log(f'Skipping {bus_name}', verbose = True)
+						finished.add(bus_name)
+					else:
+						thr = Worker(target = line_thread, args = (crawler, endt, stop_l))
+						running[bus_name] = thr
+						thr.start()
+						time.sleep(2)
 
 			# Update between 0:00 and 5:00
 			ct = cur_time()
