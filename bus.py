@@ -187,9 +187,9 @@ def main(l, pl):
 						thr.start()
 						time.sleep(2)
 
-			# Update between 0:00 and 5:00
+			# Update between 0:00 and 2:00
 			ct = cur_time()
-			if ping_pong and ct <= CT(5, 0): # and ct >= CT(0, 0)
+			if ping_pong and ct <= CT(2, 0): # and ct >= CT(0, 0)
 				update_routes(l)
 				finished.clear()
 				ping_pong = False
