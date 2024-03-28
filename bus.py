@@ -99,6 +99,7 @@ def update_routes(lines, skip_buses):
 				skip_buses.add(name)
 				continue
 			get_req(crawler, get_line = True)
+			time.sleep(2)
 		except Exception as e:
 			print(type(e), e, name, "at update_routes")
 
