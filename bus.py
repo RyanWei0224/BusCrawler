@@ -78,7 +78,7 @@ def line_thread(crawler, endt, stop_l, update = True, intv = INTV):
 		return
 
 
-def update_routes(lines):
+def update_routes(lines, skip_buses):
 	print('Update routes...')
 
 	all_meths = [meth for meth, Crawler in ALL_CRAWLERS.items() if Crawler.GET_LINE]
@@ -89,10 +89,14 @@ def update_routes(lines):
 		if meth not in all_meths:
 			continue
 
+		if name in skip_buses:
+			continue
+
 		try:
 			crawler = ALL_CRAWLERS[meth](name, line_info)
 			if crawler.stop():
 				print_log(f'At update_routes: skipping {name}', verbose = True)
+				skip_buses.add(name)
 				continue
 			get_req(crawler, get_line = True)
 		except Exception as e:
@@ -152,6 +156,8 @@ def main(l, pl):
 	finished = set()
 	ping_pong = True
 
+	skip_buses = set()
+
 	try:
 		ping_thr = Worker(target = ping_thread, args = (pl, stop_l))
 		ping_thr.start()
@@ -173,6 +179,8 @@ def main(l, pl):
 			for bus_name in l.keys():
 				if bus_name in finished:
 					continue
+				if bus_name in skip_buses:
+					continue
 				line_info, startt, endt, meth = l[bus_name]
 				ct = cur_time()
 				if bus_name not in running and startt <= ct and ct < endt:
@@ -181,6 +189,7 @@ def main(l, pl):
 					if crawler.stop():
 						print_log(f'Skipping {bus_name}', verbose = True)
 						finished.add(bus_name)
+						skip_buses.add(bus_name)
 					else:
 						thr = Worker(target = line_thread, args = (crawler, endt, stop_l))
 						running[bus_name] = thr
@@ -190,7 +199,7 @@ def main(l, pl):
 			# Update between 0:00 and 2:00
 			ct = cur_time()
 			if ping_pong and ct <= CT(2, 0): # and ct >= CT(0, 0)
-				update_routes(l)
+				update_routes(l, skip_buses)
 				finished.clear()
 				ping_pong = False
 			elif (not ping_pong) and ct > CT(6, 0):
