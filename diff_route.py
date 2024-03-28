@@ -29,6 +29,7 @@ def clean_route():
 			dict_del(data, 'tip')
 			dict_del(data, 'depDesc')
 			dict_del(data, 'depTable')
+			dict_del(data['line'], 'afterEndOperatingTimeHalfHour')
 			dict_del(data['line'], 'desc')
 			dict_del(data['line'], 'ksDesc')
 			dict_del(data['line'], 'shortDesc')
