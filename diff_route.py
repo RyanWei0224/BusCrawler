@@ -67,6 +67,9 @@ def print_obj(obj, **kwargs):
 		if 'fcsj' in obj:
 			print(obj['fcsj'], **kwargs)
 			return
+		if 'time' in obj:
+			print(obj['time'], **kwargs)
+			return
 
 	x = str(obj)
 	if len(x) > MAXL:
@@ -74,31 +77,33 @@ def print_obj(obj, **kwargs):
 	print(x, **kwargs)
 
 
-def print_diff(data1, data2, pref):
+def _print_diff(data1, data2, pref):
+	has_diff = False
 	if type(data1) != type(data2):
 		print(f'{pref}: Diff type!')
-		return
+		return True
 
 	if isinstance(data1, dict):
 		for i in data1:
 			if i not in data2:
 				print(f'{pref}[{i}] only in A, {pref}[{i}]:')
 				print_obj(data1[i])
-
+				has_diff = True
 
 		for i in data2:
 			if i not in data1:
 				print(f'{pref}[{i}] only in B, {pref}[{i}]:')
 				print_obj(data2[i])
+				has_diff = True
 
 		for i in data1:
 			if i not in data2:
 				continue
 			if i == 'jxPath':
 				continue
-			print_diff(data1[i], data2[i], f'{pref}[{i}]')
+			has_diff |= _print_diff(data1[i], data2[i], f'{pref}[{i}]')
 
-		return
+		return has_diff
 
 	if isinstance(data1, list):
 		if all(isinstance(i, dict) for i in data1) and all(isinstance(i, dict) for i in data2):
@@ -129,6 +134,18 @@ def print_diff(data1, data2, pref):
 			elif all_in('namesakeStId') and all_in('distanceToSp'):
 				keys.add('namesakeStId')
 				keys.add('distanceToSp')
+				keys.add('lat')
+				keys.add('lng')
+				keys.add('wgsLat')
+				keys.add('wgsLng')
+			elif all(all_in(i) for i in [
+					'createUser', 'updateUser',
+					'createUserId', 'updateUserId',
+					'createDepartmentId', 'lineId',
+					'time', 'sortNum',
+					'direction',
+					]):
+				serial_print = True
 
 			def remove_keys(l, keys):
 				if not keys:
@@ -165,13 +182,16 @@ def print_diff(data1, data2, pref):
 					cur = rem_data2.index(x, st)
 				except ValueError:
 					a_del(i)
+					has_diff = True
 				else:
 					for j in range(st, cur):
 						b_add(j)
+						has_diff = True
 					st = cur+1
 
 			for j in range(st, len(data2)):
 				b_add(j)
+				has_diff = True
 
 			def output(l, s):
 				if not l:
@@ -183,20 +203,27 @@ def print_diff(data1, data2, pref):
 
 			output(a_list, f'{pref} in A is deleted:')
 			output(b_list, f'{pref} in B is added:')
-			return
+			return has_diff
 
 		num = 0
 		for i, j in zip(data1, data2):
-			print_diff(i, j, f'{pref}[{num}]')
+			has_diff |= _print_diff(i, j, f'{pref}[{num}]')
 			num += 1
 
-		return
+		return has_diff
 
 	if data1 != data2:
 		print(f'{pref}: different:')
 		print(f'\t"{data1}"')
 		print(f'\t"{data2}"')
+		return True
 
+	return False
+
+
+def print_diff(*args):
+	if _print_diff(*args):
+		_=input()
 
 def check_diff(name):
 	datas = ljson_files(name)
@@ -210,7 +237,6 @@ def check_diff(name):
 
 		print('Diff:', d1, d2)
 		print_diff(data1, data2, '')
-		_=input()
 
 
 def list_diff():
@@ -229,7 +255,6 @@ def list_diff():
 
 		print('Diff:', d1, d2)
 		print_diff(data1, data2, '')
-		_=input()
 
 
 def reset_route(name):
