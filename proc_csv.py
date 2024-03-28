@@ -16,9 +16,67 @@ WDAY_LIST = [
 ]
 
 
+METH_DICT = {
+	'CS': 7,
+	'CSZ': 8,
+	'CZ': 0,
+	'CZR': 3,
+	'DY': 1,
+	'JD': 9,
+	'JR': 2,
+	'JT': 0,
+	'JY': 0,
+	'KS': 6,
+	'NJ': 0,
+	'SH': 10,
+	'SHJ': 9,
+	'SZR': 5,
+	'TC': 0,
+	'TCR': 11,
+	'WX': 0,
+	'WXR': 4,
+	'WXZ': 2,
+	'ZJ': 0,
+	'ZJG': 8,
+}
+
+
 def proc_csv(lines = None):
+	from crawlers.all import ALL_CRAWLERS
+
 	if lines is None:
-		assert False, 'TODO! Not implemented yet.'
+		lines = dict()
+		for fname in os.listdir(PICKLE_DIR):
+			if not fname.endswith('.pickle'):
+				continue
+
+			route_name = fname[:-len('.pickle')]
+
+			it = route_name.find('_')
+			assert it != -1
+			route_meth = route_name[:it]
+
+			meth = METH_DICT.get(route_meth, None)
+
+			if meth is None:
+				print(f'(Recommend adding "{route_meth}" into METH_DICT)')
+				while True:
+					s = input(f'Enter method id of {route_name}:')
+
+					try:
+						s = int(s)
+					except Exception:
+						print('Not an integer, please retry...')
+						continue
+
+					if s not in ALL_CRAWLERS:
+						print('id not found, please retry...')
+						continue
+
+					meth = s
+					break
+
+			lines[route_name] = [meth]
 
 	for route_name in lines:
 		fname = f'{PICKLE_DIR}/{route_name}.pickle'
@@ -29,11 +87,13 @@ def proc_csv(lines = None):
 		res = load_pkl(fname)
 
 		meth = lines[route_name][-1]
-		proc_route(route_name, meth, res)
+		crawler = ALL_CRAWLERS[meth]
+
+		proc_route(route_name, crawler, res)
 
 
-def proc_route(route_name, meth, res):
-	stop_info = get_route_stops(route_name, meth)
+def proc_route(route_name, crawler, res):
+	stop_info = get_route_stops(route_name, crawler)
 
 	days = sorted(res.keys(), reverse = True)
 
@@ -98,9 +158,7 @@ def proc_route(route_name, meth, res):
 
 
 # Return [(day, [stop1, stop2, ...]), ...]
-def get_route_stops(route_name, meth):
-	from crawlers.all import ALL_CRAWLERS
-	crawler = ALL_CRAWLERS[meth]
+def get_route_stops(route_name, crawler):
 	line_files = ljson_files(route_name)
 	stop_info = []
 	for t, fname in line_files:
@@ -155,8 +213,13 @@ def proc_day(res_day):
 
 
 def main():
-	from lines import LINES
-	proc_csv(lines = LINES)
+	print('Input any string to process all pickles,')
+	print('or press enter directly to process LINES only:', end = '')
+	if input():
+		proc_csv()
+	else:
+		from lines import LINES
+		proc_csv(lines = LINES)
 
 
 if __name__ == '__main__':
